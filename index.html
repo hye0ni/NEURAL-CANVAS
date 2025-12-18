@@ -1,24 +1,24 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNTHETIC HORIZON | AI Artwork Exhibition</title>
+    <title>ABOUT SH | SH's Portfolio</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- CSS Variables & Reset --- */
+        /* --- [THEME: NEO MATRIX] CSS Variables --- */
         :root {
-            --bg-color: #020014;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0c0;
-            --neon-magenta: #ff0055;
-            --neon-cyan: #00ffff;
-            --hologram-bg: rgba(2, 0, 20, 0.7);
-            --hologram-border: rgba(0, 255, 255, 0.3);
+            --bg-color: #000b00;           /* 딥 다크 그린 (터미널 배경) */
+            --text-primary: #e0ffe0;       /* 연한 녹색 (모니터 글자) */
+            --text-secondary: #308030;     /* 어두운 녹색 (보조) */
+            --neon-main: #00ff41;          /* 매트릭스 그린 (주 포인트) */
+            --neon-sub: #ccff00;           /* 라임 옐로우 (보조 포인트) */
+            --hologram-bg: rgba(0, 20, 0, 0.85);
+            --hologram-border: rgba(0, 255, 65, 0.4);
         }
 
         * {
@@ -42,34 +42,35 @@
             font-weight: 700;
         }
 
-        a { text-decoration: none; }
+        a { text-decoration: none; color: inherit; }
 
-        /* --- Custom Reticle Cursor --- */
+        /* --- Custom Cursor (Target Sight) --- */
         .cursor-reticle {
             position: fixed;
             top: 0; left: 0;
             width: 30px; height: 30px;
-            border: 2px solid var(--neon-cyan);
+            border: 2px solid var(--neon-main);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
-            z-index: 9999;
+            z-index: 10001; /* 대화창 위로 보이게 설정 */
             transition: width 0.2s, height 0.2s, border-color 0.2s;
-            box-shadow: 0 0 10px var(--neon-cyan);
+            box-shadow: 0 0 5px var(--neon-main);
+            background-color: rgba(0, 255, 65, 0.05);
         }
-        .cursor-reticle::after { /* 조준점 */
+        .cursor-reticle::after {
             content: '';
             position: absolute;
             top: 50%; left: 50%;
             width: 4px; height: 4px;
-            background: var(--neon-magenta);
+            background: var(--neon-sub);
             transform: translate(-50%, -50%);
             border-radius: 50%;
         }
         body:hover .cursor-reticle {
             width: 50px; height: 50px;
-            border-color: var(--neon-magenta);
-            box-shadow: 0 0 15px var(--neon-magenta);
+            border-color: var(--neon-sub);
+            box-shadow: 0 0 15px var(--neon-sub);
         }
 
         /* --- Background Canvas --- */
@@ -78,7 +79,7 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             z-index: -1;
-            opacity: 0.6;
+            opacity: 0.5;
         }
 
         /* --- Layout --- */
@@ -95,464 +96,87 @@
             justify-content: center;
             padding: 100px 0;
         }
-
-        /* --- Glitch Title Effect --- */
-        .glitch-title {
-            font-size: 3.5rem;
-            margin-bottom: 50px;
-            text-align: center;
-            position: relative;
-            color: var(--text-primary);
-            opacity: 0; /* 스크롤 전 숨김 */
-        }
-        .glitch-title.visible {
-             animation: glitch-appear 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
-        }
-        .glitch-title::before, .glitch-title::after {
-            content: attr(data-text);
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0.8;
-        }
-        .glitch-title::before {
-            color: var(--neon-cyan);
-            z-index: -1;
-            animation: glitch-anim-1 2s infinite linear alternate-reverse;
-        }
-        .glitch-title::after {
-            color: var(--neon-magenta);
-            z-index: -2;
-            animation: glitch-anim-2 3s infinite linear alternate-reverse;
-        }
-
-        /* --- Hero Section --- */
-        #hero {
-            text-align: left;
-            align-items: flex-start;
-            padding-top: 20vh;
-        }
-        .hero-title {
-            font-size: 6rem;
-            line-height: 1;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 0px var(--neon-magenta), -2px -2px 0px var(--neon-cyan);
-        }
-        .hero-subtitle {
-            font-size: 1.8rem;
-            color: var(--neon-cyan);
-            margin-bottom: 40px;
-            letter-spacing: 5px;
-        }
-
-        /* --- Hologram Gallery Cards (New Design) --- */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-        }
-
-        .holo-card {
-            position: relative;
-            background: var(--hologram-bg);
-            border: 1px solid var(--hologram-border);
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-            opacity: 0; transform: translateY(30px); /* 스크롤 초기 상태 */
-            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .holo-card.visible {
-            opacity: 1; transform: translateY(0);
-        }
-
-        .card-img-frame {
-            height: 400px;
-            position: relative;
-            overflow: hidden;
+        
+        /* --- New: Header and Navigation --- */
+        #main-header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: rgba(0, 5, 0, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
             border-bottom: 1px solid var(--hologram-border);
         }
-        .card-img-frame img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            filter: grayscale(50%) contrast(120%);
-            transition: filter 0.3s;
+        .nav-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px;
         }
-        /* Placeholder for images */
-        .card-img-placeholder {
-            width: 100%; height: 100%;
-            background: linear-gradient(45deg, #111, #222);
+        .nav-logo {
+            font-size: 1.5rem; font-weight: 700; color: var(--neon-main);
+            letter-spacing: 2px; text-shadow: 0 0 5px var(--neon-main);
+        }
+        .nav-links a {
+            margin-left: 30px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--neon-main);
+            text-shadow: 0 0 8px var(--neon-main);
+        }
+        /* --- New: SPA Pages --- */
+        .spa-page {
+            display: none;
+            min-height: 90vh;
+            padding-top: 100px; /* Adjust for fixed header */
+        }
+        .spa-page.active {
             display: flex;
-            justify-content: center; alignItems: center;
-            color: #555; font-size: 1.5rem;
-        }
-
-        /* Hologram Scanline Hover Effect */
-        .holo-card::after {
-            content: '';
-            position: absolute;
-            top: -50%; left: 0; width: 100%; height: 50%;
-            background: linear-gradient(to bottom, transparent, var(--neon-cyan), transparent);
-            opacity: 0;
-            z-index: 2;
-            pointer-events: none;
-        }
-        .holo-card:hover::after {
-            opacity: 0.5;
-            animation: scanline-pass 1.5s ease-in-out infinite;
-        }
-        .holo-card:hover .card-img-frame img {
-            filter: grayscale(0%) contrast(100%);
-        }
-        .holo-card:hover {
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-        }
-
-        .card-info {
-            padding: 25px;
-            position: relative;
-            z-index: 3;
-        }
-        .card-info h3 { font-size: 1.6rem; color: var(--text-primary); margin-bottom: 8px; }
-        .card-info p { color: var(--neon-magenta); font-size: 1rem; }
-
-
-        /* --- Video Section --- */
-        .video-frame {
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-            border: 2px solid var(--neon-magenta);
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
-            position: relative;
-            opacity: 0; transform: scale(0.95);
-            transition: all 0.8s ease;
-        }
-        .video-frame.visible {
-             opacity: 1; transform: scale(1);
-        }
-        .video-frame::before { /* Corner decoration */
-            content: ''; position: absolute; top: -10px; left: -10px;
-            width: 30px; height: 30px; border-top: 3px solid var(--neon-cyan); border-left: 3px solid var(--neon-cyan);
-        }
-        .video-frame::after { /* Corner decoration */
-            content: ''; position: absolute; bottom: -10px; right: -10px;
-            width: 30px; height: 30px; border-bottom: 3px solid var(--neon-cyan); border-right: 3px solid var(--neon-cyan);
-        }
-
-        .video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-            height: 0;
-            background: #000;
-        }
-        .video-wrapper iframe, .video-wrapper video {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        }
-
-        /* --- Footer --- */
-        footer {
-            padding: 50px; text-align: center;
-            border-top: 1px solid var(--hologram-border); color: var(--text-secondary);
-        }
-        footer span { color: var(--neon-cyan); }
-
-        /* --- Animations Keyframes --- */
-        @keyframes glitch-appear {
-            0% { opacity: 0; transform: translateX(-50px); clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
-            100% { opacity: 1; transform: translateX(0); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
-        }
-        @keyframes glitch-anim-1 {
-            0% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
-            100% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -2px); }
-        }
-        @keyframes glitch-anim-2 {
-            0% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px); }
-            100% { clip-path: inset(50% 0 20% 0); transform: translate(-2px, 2px); }
-        }
-        @keyframes scanline-pass {
-            0% { top: -50%; opacity: 0; }
-            50% { opacity: 0.7; }
-            100% { top: 100%; opacity: 0; }
         }
         
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero-title { font-size: 4rem; }
-            .glitch-title { font-size: 2.5rem; }
+        /* --- New: Self-Intro Table --- */
+        .info-table {
+            width: 100%; max-width: 600px; margin: 50px auto;
+            border-collapse: collapse;
         }
-    </style>
-</head>
-<body>
-
-    <div class="cursor-reticle"></div>
-
-    <canvas id="wireframe-canvas"></canvas>
-
-    <main class="container">
-        <section id="hero">
-            <h1 class="hero-title" data-text="SYNTHETIC HORIZON">SYNTHETIC<br>HORIZON</h1>
-            <p class="hero-subtitle">AI GENERATED ART EXHITION</p>
-            <p style="color: var(--text-secondary); max-width: 500px;">
-                탐험하라. 인공지능이 그려낸 새로운 현실의 경계를. <br>
-                상상력과 데이터가 충돌하는 지점.
-            </p>
-        </section>
-
-        <section id="gallery">
-            <h2 class="glitch-title" data-text="> CYBERNETIC ENTITIES">> AI </h2>
-            
-            <div class="gallery-grid">
-                <div class="holo-card scroll-item">
-                    <div class="card-img-frame">
-                        <img src="캐릭터 1.jpg" alt="사이버 닌자 작품">
-                    </div>
-                    <div class="card-info">
-                        <h3>PROJECT: NEON_SAMURAI</h3>
-                        <p>Generated by Midjourney V6</p>
-                    </div>
-                </div>
-                <div class="holo-card scroll-item" style="transition-delay: 0.2s;">
-                    <div class="card-img-frame">
-                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 02 ]</div>
-                    </div>
-                    <div class="card-info">
-                        <h3>PROJECT: DATA_ANGEL</h3>
-                        <p>Stable Diffusion XL</p>
-                    </div>
-                </div>
-                <div class="holo-card scroll-item" style="transition-delay: 0.4s;">
-                    <div class="card-img-frame">
-                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 03 ]</div>
-                    </div>
-                    <div class="card-info">
-                        <h3>PROJECT: GLITCH_CORE</h3>
-                        <p>DALL-E 3 + Photoshop</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="video">
-            <h2 class="glitch-title" data-text="> VISUAL TRANSMISSION">> VISUAL TRANSMISSION</h2>
-            
-            <div class="video-frame scroll-item">
-                <div class="video-wrapper">
-                    <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=test&controls=0&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                    </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <p>© 2025 SYNTHETIC HORIZON. <span>SYSTEM.READY</span></p>
-    </footer>
-
-    <script>
-        // --- 1. Custom Reticle Cursor Follow ---
-        const reticle = document.querySelector('.cursor-reticle');
-        window.addEventListener('mousemove', (e) => {
-            reticle.style.left = `${e.clientX}px`;
-            reticle.style.top = `${e.clientY}px`;
-        });
-
-
-        // --- 2. 3D Wireframe Sphere Background Animation (Canvas API) ---
-        const canvas = document.getElementById('wireframe-canvas');
-        const ctx = canvas.getContext('2d');
-        
-        let width, height;
-        let sphereRotation = 0;
-        const numPoints = 400; // 점의 개수
-        const sphereRadius = 400; // 구의 반지름
-
-        // 3D 점 생성
-        const points = [];
-        for (let i = 0; i < numPoints; i++) {
-            const theta = Math.random() * Math.PI * 2; // 방위각
-            const phi = Math.acos(2 * Math.random() - 1); // 고도각
-            points.push({
-                x: sphereRadius * Math.sin(phi) * Math.cos(theta),
-                y: sphereRadius * Math.sin(phi) * Math.sin(theta),
-                z: sphereRadius * Math.cos(phi)
-            });
+        .info-table th, .info-table td {
+            padding: 15px; border: 1px solid var(--hologram-border);
+            text-align: left;
+            font-size: 1.1rem;
+        }
+        .info-table th {
+            background: rgba(0, 20, 0, 0.5);
+            color: var(--neon-sub);
+            width: 30%;
         }
 
-        function resize() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+        /* --- New: Works Tabs --- */
+        .works-tabs {
+            display: flex; justify-content: center; margin-bottom: 50px;
+            margin-top: 30px;
         }
-        window.addEventListener('resize', resize);
-        resize();
-
-        function draw() {
-            ctx.clearRect(0, 0, width, height);
-            
-            // 중앙으로 원점 이동
-            const cx = width / 2;
-            const cy = height / 2;
-
-            sphereRotation += 0.003; // 회전 속도
-
-            points.forEach(p => {
-                // Y축 중심 회전 (간단한 3D 회전 행렬)
-                let x = p.x * Math.cos(sphereRotation) - p.z * Math.sin(sphereRotation);
-                let z = p.x * Math.sin(sphereRotation) + p.z * Math.cos(sphereRotation);
-                let y = p.y;
-
-                // 원근 투영 (Perspective Projection)
-                let scale = 1000 / (1000 + z); // 거리에 따른 크기 조절
-                let px = cx + x * scale;
-                let py = cy + y * scale;
-                let pSize = (2 * scale);
-
-                // 점 그리기
-                ctx.fillStyle = '#00ffff';
-                ctx.beginPath();
-                ctx.arc(px, py, pSize, 0, Math.PI * 2);
-                ctx.fill();
-
-                // 가까운 점들끼리 선 연결 (와이어프레임 효과)
-                points.forEach(p2 => {
-                     let x2 = p2.x * Math.cos(sphereRotation) - p2.z * Math.sin(sphereRotation);
-                     let z2 = p2.x * Math.sin(sphereRotation) + p2.z * Math.cos(sphereRotation);
-                     let y2 = p2.y;
-                     
-                     let distance = Math.sqrt(Math.pow(x-x2, 2) + Math.pow(y-y2, 2) + Math.pow(z-z2, 2));
-
-                     if(distance < 100) { // 일정 거리 이내만 연결
-                         let scale2 = 1000 / (1000 + z2);
-                         let px2 = cx + x2 * scale2;
-                         let py2 = cy + y2 * scale2;
-                         
-                         ctx.strokeStyle = `rgba(0, 255, 255, ${1 - distance/100})`;
-                         ctx.lineWidth = 0.5;
-                         ctx.beginPath();
-                         ctx.moveTo(px, py);
-                         ctx.lineTo(px2, py2);
-                         ctx.stroke();
-                     }
-                });
-            });
-
-            requestAnimationFrame(draw);
-        }
-        draw();
-
-
-        // --- 3. Scroll Reveal Animation (Intersection Observer) ---
-        const observerOptions = { threshold: 0.15, rootMargin: "0px 0px -50px 0px" };
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                    observer.unobserve(entry.target); // 한번 나타나면 관찰 중지
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.glitch-title, .scroll-item').forEach(el => {
-            observer.observe(el);
-        });
-
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYNTHETIC HORIZON | AI Artwork Exhibition</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        /* --- CSS Variables & Reset --- */
-        :root {
-            --bg-color: #020014;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0c0;
-            --neon-magenta: #ff0055;
-            --neon-cyan: #00ffff;
-            --hologram-bg: rgba(2, 0, 20, 0.7);
-            --hologram-border: rgba(0, 255, 255, 0.3);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            cursor: none; /* 기본 커서 숨김 */
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-            line-height: 1.5;
-        }
-
-        h1, h2, h3 {
+        .works-tab-btn {
+            background: none; border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
+            transition: color 0.3s, border-bottom 0.3s;
+            margin: 0 15px;
+            border-bottom: 3px solid transparent;
+        }
+        .works-tab-btn:hover, .works-tab-btn.active {
+            color: var(--neon-main);
+            border-bottom: 3px solid var(--neon-main);
+        }
+        .works-content {
+            display: none;
+            padding-top: 20px;
+        }
+        .works-content.active {
+            display: block;
         }
 
-        a { text-decoration: none; }
-
-        /* --- Custom Reticle Cursor --- */
-        .cursor-reticle {
-            position: fixed;
-            top: 0; left: 0;
-            width: 30px; height: 30px;
-            border: 2px solid var(--neon-cyan);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 9999;
-            transition: width 0.2s, height 0.2s, border-color 0.2s;
-            box-shadow: 0 0 10px var(--neon-cyan);
-        }
-        .cursor-reticle::after { /* 조준점 */
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 4px; height: 4px;
-            background: var(--neon-magenta);
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-        }
-        body:hover .cursor-reticle {
-            width: 50px; height: 50px;
-            border-color: var(--neon-magenta);
-            box-shadow: 0 0 15px var(--neon-magenta);
-        }
-
-        /* --- Background Canvas --- */
-        #wireframe-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-            opacity: 0.6;
-        }
-
-        /* --- Layout --- */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        section {
-            min-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 100px 0;
-        }
 
         /* --- Glitch Title Effect --- */
         .glitch-title {
@@ -561,10 +185,10 @@
             text-align: center;
             position: relative;
             color: var(--text-primary);
-            opacity: 0; /* 스크롤 전 숨김 */
+            opacity: 0;
         }
         .glitch-title.visible {
-             animation: glitch-appear 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+             animation: glitch-appear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
         }
         .glitch-title::before, .glitch-title::after {
             content: attr(data-text);
@@ -573,12 +197,12 @@
             opacity: 0.8;
         }
         .glitch-title::before {
-            color: var(--neon-cyan);
+            color: var(--neon-sub);
             z-index: -1;
             animation: glitch-anim-1 2s infinite linear alternate-reverse;
         }
         .glitch-title::after {
-            color: var(--neon-magenta);
+            color: var(--neon-main);
             z-index: -2;
             animation: glitch-anim-2 3s infinite linear alternate-reverse;
         }
@@ -591,18 +215,26 @@
         }
         .hero-title {
             font-size: 6rem;
-            line-height: 1;
+            line-height: 0.9;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 0px var(--neon-magenta), -2px -2px 0px var(--neon-cyan);
+            text-shadow: 2px 2px 0px var(--neon-main), -2px -2px 0px var(--neon-sub);
         }
         .hero-subtitle {
             font-size: 1.8rem;
-            color: var(--neon-cyan);
+            color: var(--neon-main);
             margin-bottom: 40px;
             letter-spacing: 5px;
+            border-bottom: 2px solid var(--neon-main);
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+        .hero-desc {
+            color: var(--text-secondary);
+            max-width: 500px;
+            font-size: 1.1rem;
         }
 
-        /* --- Hologram Gallery Cards (New Design) --- */
+        /* --- Hologram Gallery Cards --- */
         .gallery-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -613,17 +245,18 @@
             position: relative;
             background: var(--hologram-bg);
             border: 1px solid var(--hologram-border);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(5px);
             overflow: hidden;
-            opacity: 0; transform: translateY(30px); /* 스크롤 초기 상태 */
-            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            opacity: 0; transform: translateY(30px);
+            transition: all 0.4s ease-out;
         }
         .holo-card.visible {
             opacity: 1; transform: translateY(0);
         }
 
         .card-img-frame {
-            height: 400px;
+            /* NOTE: 원래 1:1 요청에 따라 height: 350px이 권장되지만, 사용자가 제공한 600px 유지 */
+            height: 600px;
             position: relative;
             overflow: hidden;
             border-bottom: 1px solid var(--hologram-border);
@@ -631,38 +264,32 @@
         .card-img-frame img {
             width: 100%; height: 100%;
             object-fit: cover;
-            filter: grayscale(50%) contrast(120%);
-            transition: filter 0.3s;
+            filter: grayscale(80%) sepia(50%) hue-rotate(80deg) contrast(1.2); /* 매트릭스 필터 효과 */
+            transition: filter 0.3s, transform 0.5s;
         }
-        /* Placeholder for images */
-        .card-img-placeholder {
-            width: 100%; height: 100%;
-            background: linear-gradient(45deg, #111, #222);
-            display: flex;
-            justify-content: center; alignItems: center;
-            color: #555; font-size: 1.5rem;
-        }
-
-        /* Hologram Scanline Hover Effect */
+        /* 이미지 플레이스홀더 (Chat 기능 구현으로 제거됨) */
+        
+        /* Hologram Scan Hover */
         .holo-card::after {
             content: '';
             position: absolute;
             top: -50%; left: 0; width: 100%; height: 50%;
-            background: linear-gradient(to bottom, transparent, var(--neon-cyan), transparent);
+            background: linear-gradient(to bottom, transparent, var(--neon-main), transparent);
             opacity: 0;
             z-index: 2;
             pointer-events: none;
         }
         .holo-card:hover::after {
-            opacity: 0.5;
-            animation: scanline-pass 1.5s ease-in-out infinite;
+            opacity: 0.3;
+            animation: scanline-pass 1.2s ease-in-out infinite;
         }
         .holo-card:hover .card-img-frame img {
-            filter: grayscale(0%) contrast(100%);
+            filter: grayscale(0%) sepia(0%) hue-rotate(0deg); /* 호버시 원본 색상 복구 */
+            transform: scale(1.05);
         }
         .holo-card:hover {
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+            border-color: var(--neon-main);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
         }
 
         .card-info {
@@ -671,7 +298,7 @@
             z-index: 3;
         }
         .card-info h3 { font-size: 1.6rem; color: var(--text-primary); margin-bottom: 8px; }
-        .card-info p { color: var(--neon-magenta); font-size: 1rem; }
+        .card-info p { color: var(--neon-main); font-size: 0.9rem; letter-spacing: 1px; }
 
 
         /* --- Video Section --- */
@@ -679,42 +306,77 @@
             width: 100%;
             max-width: 1000px;
             margin: 0 auto;
-            border: 2px solid var(--neon-magenta);
-            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
+            border: 2px solid var(--neon-main);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
             position: relative;
-            opacity: 0; transform: scale(0.95);
+            opacity: 1; /* SPA에서 컨트롤 */
             transition: all 0.8s ease;
+            background: #000;
         }
-        .video-frame.visible {
-             opacity: 1; transform: scale(1);
+        .video-frame::before { 
+            content: ''; position: absolute; top: -5px; left: -5px;
+            width: 20px; height: 20px; border-top: 3px solid var(--neon-sub); border-left: 3px solid var(--neon-sub);
         }
-        .video-frame::before { /* Corner decoration */
-            content: ''; position: absolute; top: -10px; left: -10px;
-            width: 30px; height: 30px; border-top: 3px solid var(--neon-cyan); border-left: 3px solid var(--neon-cyan);
-        }
-        .video-frame::after { /* Corner decoration */
-            content: ''; position: absolute; bottom: -10px; right: -10px;
-            width: 30px; height: 30px; border-bottom: 3px solid var(--neon-cyan); border-right: 3px solid var(--neon-cyan);
+        .video-frame::after { 
+            content: ''; position: absolute; bottom: -5px; right: -5px;
+            width: 20px; height: 20px; border-bottom: 3px solid var(--neon-sub); border-right: 3px solid var(--neon-sub);
         }
 
         .video-wrapper {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            padding-bottom: 56.25%; /* 16:9 비율 */
             height: 0;
-            background: #000;
         }
         .video-wrapper iframe, .video-wrapper video {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         }
+        
+        /* --- Video Thumbnail/Placeholder Styles (추가/통합) --- */
+        .video-placeholder {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            background: #000;
+        }
+        .video-placeholder img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            /* 매트릭스 테마 필터 적용 (호버 시 풀림) */
+            filter: brightness(0.6) grayscale(80%) sepia(50%) hue-rotate(80deg) contrast(1.2); 
+            transition: filter 0.3s;
+        }
+        .video-frame:hover .video-placeholder img {
+            filter: brightness(1); /* 호버 시 원본 색상 복구 */
+        }
+        .video-play-icon {
+            position: absolute;
+            padding: 15px 25px;
+            background: var(--neon-main);
+            color: var(--bg-color); /* 배경색과 대비되는 색 */
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px var(--neon-main);
+            transition: transform 0.3s, background 0.3s;
+            z-index: 1; /* 썸네일 위에 보이게 */
+        }
+        .video-frame:hover .video-play-icon {
+            background: var(--neon-sub);
+            box-shadow: 0 0 15px var(--neon-sub);
+            transform: scale(1.05);
+        }
+
 
         /* --- Footer --- */
         footer {
             padding: 50px; text-align: center;
-            border-top: 1px solid var(--hologram-border); color: var(--text-secondary);
+            border-top: 1px solid var(--hologram-border); 
+            color: var(--text-secondary);
+            font-size: 0.8rem;
         }
-        footer span { color: var(--neon-cyan); }
+        footer span { color: var(--neon-main); }
 
-        /* --- Animations Keyframes --- */
+        /* --- Animations --- */
         @keyframes glitch-appear {
             0% { opacity: 0; transform: translateX(-50px); clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
             100% { opacity: 1; transform: translateX(0); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
@@ -733,11 +395,75 @@
             100% { top: 100%; opacity: 0; }
         }
         
-        /* Responsive */
         @media (max-width: 768px) {
             .hero-title { font-size: 4rem; }
             .glitch-title { font-size: 2.5rem; }
         }
+        /* --- Chat Modal Styles (추가/통합) --- */
+        .chat-modal {
+            display: none; /* 기본 숨김 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            justify-content: center; align-items: center;
+        }
+        .chat-box {
+            width: 90%; max-width: 500px;
+            height: 70vh;
+            background: var(--bg-color);
+            border: 2px solid var(--neon-main);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+        .chat-header {
+            padding: 15px; border-bottom: 1px solid var(--neon-sub);
+            color: var(--neon-sub); font-size: 1.2rem;
+            text-align: center;
+            position: relative;
+        }
+        .chat-close {
+            position: absolute; right: 10px; top: 10px;
+            font-size: 2rem; color: var(--neon-main); cursor: pointer;
+            line-height: 1;
+        }
+
+        .chat-messages {
+            flex-grow: 1; padding: 20px; overflow-y: auto;
+            font-size: 0.9rem;
+            background: rgba(0, 10, 0, 0.8);
+            border-top: 1px dashed var(--text-secondary);
+        }
+        .message { margin-bottom: 10px; padding: 5px 10px; border-radius: 5px; }
+        .message.bot { 
+            background: rgba(0, 255, 65, 0.1); color: var(--neon-main); 
+            text-align: left; 
+            border-left: 3px solid var(--neon-main);
+        }
+        .message.user { 
+            background: rgba(48, 128, 48, 0.5); color: var(--text-primary); 
+            text-align: right; 
+            border-right: 3px solid var(--neon-sub);
+        }
+
+        .chat-input-area {
+            display: flex; border-top: 2px solid var(--neon-main);
+        }
+        .chat-input-area input {
+            flex-grow: 1; padding: 15px; background: #000;
+            border: none; color: var(--text-primary);
+            font-size: 1rem; outline: none;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .chat-input-area button {
+            padding: 15px; background: var(--neon-main); color: #000;
+            border: none; cursor: pointer; font-weight: 700;
+            transition: background 0.3s;
+        }
+        .chat-input-area button:hover {
+            background: var(--neon-sub);
+        }
+        
     </style>
 </head>
 <body>
@@ -745,89 +471,213 @@
     <div class="cursor-reticle"></div>
 
     <canvas id="wireframe-canvas"></canvas>
+    
+    <header id="main-header">
+        <nav class="container nav-bar">
+            <div class="nav-logo">ABOUT SH</div>
+            <div class="nav-links">
+                <a href="#intro" class="active" onclick="showPage('introPage', event)">[ 01 ] INTRODUCTION</a>
+                <a href="#works" onclick="showPage('worksPage', event)">[ 02 ] WORKS</a>
+            </div>
+        </nav>
+    </header>
 
     <main class="container">
-        <section id="hero">
-            <h1 class="hero-title" data-text="SYNTHETIC HORIZON">SYNTHETIC<br>HORIZON</h1>
-            <p class="hero-subtitle">AI GENERATED ART EXHITION</p>
-            <p style="color: var(--text-secondary); max-width: 500px;">
-                탐험하라. 인공지능이 그려낸 새로운 현실의 경계를. <br>
-                상상력과 데이터가 충돌하는 지점.
+        <section id="hero" style="min-height: 50vh; justify-content: flex-start; padding-top: 150px; padding-bottom: 50px;">
+            <h1 class="hero-title" data-text="SH's portfolilo">SH's<br>portfolio</h1>
+            <p class="hero-subtitle">media contents</p>
+            <p class="hero-desc">
+                [Welcome!] <br>
+                이곳에서 SH의 작품을 한눈에 볼 수 있습니다.
             </p>
         </section>
 
-        <section id="gallery">
-            <h2 class="glitch-title" data-text="> CYBERNETIC ENTITIES">> CYBERNETIC ENTITIES</h2>
+        <section id="introPage" class="spa-page active" style="min-height: 70vh;">
+            <h2 class="glitch-title" data-text="< USER PROFILE >">< USER PROFILE ></h2>
+            <table class="info-table scroll-item">
+                <tr><th>NAME</th><td>Choi Seo Hyeon</td></tr>
+                <tr><th>DAY OF BIRTH</th><td>2004. 08. 12</td></tr>
+                <tr><th>PHONE</th><td>010-1234-5678</td></tr>
+                <tr><th>EMAIL</th><td>shyeon0812@gmail.com</td></tr>
+                <tr><th>EDUCATION</th><td>KYUNGSUNG UNIVERSITY</td></tr>
+                <tr><th>CAN USE</th><td>PHOTOSHOP, ILLUSTRATOR, PREMIERE PRO, AFTER EFFECT</td></tr>
+            </table>
+        </section>
+
+        <section id="worksPage" class="spa-page" style="display: none; min-height: 100vh;">
+            <h2 class="glitch-title" data-text="< WORKS ARCHIVE >">< WORKS ARCHIVE ></h2>
             
-            <div class="gallery-grid">
-                <div class="holo-card scroll-item">
-                    <div class="card-img-frame">
-                        <div class="card-img-placeholder">[ IMG ERROR :: UNIT 01 ]</div>
+            <div class="works-tabs">
+                <button class="works-tab-btn active" onclick="showWorksTab('ai-used', this)">AI USED</button>
+                <button class="works-tab-btn" onclick="showWorksTab('non-ai', this)">NON-AI</button>
+            </div>
+
+            <div id="ai-used" class="works-content active">
+                <h3 class="glitch-title" style="font-size:2.5rem;" data-text="< AI Characters>">< AI Characters></h3>
+                <div class="gallery-grid">
+                    <div class="holo-card scroll-item">
+                        <div class="card-img-frame" style="cursor: pointer;">
+                            <img src="character1.jpg" alt="character1.jpg">
+                        </div>
+                        <div class="card-info">
+                            <h3>Boksil</h3>
+                            <p>> 장난기 많은데 공부도 잘하는 등교메이트!</p>
+                        </div>
                     </div>
-                    <div class="card-info">
-                        <h3>PROJECT: NEON_SAMURAI</h3>
-                        <p>Generated by Midjourney V6</p>
+                    <div class="holo-card scroll-item" style="transition-delay: 0.1s;">
+                        <div class="card-img-frame" style="cursor: pointer;">
+                            <img src="character2.jpg" alt="character2.jpg">
+                        </div>
+                        <div class="card-info">
+                            <h3>Black</h3>
+                            <p>> 최애의 팬사인회😍 날 기억할까?</p>
+                        </div>
                     </div>
                 </div>
-                <div class="holo-card scroll-item" style="transition-delay: 0.2s;">
-                    <div class="card-img-frame">
-                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 02 ]</div>
-                    </div>
-                    <div class="card-info">
-                        <h3>PROJECT: DATA_ANGEL</h3>
-                        <p>Stable Diffusion XL</p>
-                    </div>
-                </div>
-                <div class="holo-card scroll-item" style="transition-delay: 0.4s;">
-                    <div class="card-img-frame">
-                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 03 ]</div>
-                    </div>
-                    <div class="card-info">
-                        <h3>PROJECT: GLITCH_CORE</h3>
-                        <p>DALL-E 3 + Photoshop</p>
+
+                <h3 class="glitch-title" style="font-size:2.5rem; margin-top: 100px;" data-text="< AI Advertisement>">< AI Advertisement></h3>
+                <div class="video-frame scroll-item" id="aiAdVideoFrame" data-video-id="XA3t2QM35jg"> 
+                    <div class="video-wrapper">
+                        <div id="videoPlaceholder-ad" class="video-placeholder">
+                            <img id="videoThumbnail-ad" src="" alt="AI Advertisement Thumbnail">
+                            <div class="video-play-icon">▶ AI 자동차 광고</div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
 
-        <section id="video">
-            <h2 class="glitch-title" data-text="> VISUAL TRANSMISSION">> VISUAL TRANSMISSION</h2>
-            
-            <div class="video-frame scroll-item">
-                <div class="video-wrapper">
-                    <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=test&controls=0&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div id="non-ai" class="works-content">
+                <h3 class="glitch-title" style="font-size:2.5rem;" data-text="< LONG_FORM >">< LONG_FORM ></h3>
+                <div class="gallery-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+                    <div class="video-frame scroll-item" id="longVideoFrame1" data-video-id="ag4oKwIMOPc" style="max-width: none;"> 
+                        <div class="video-wrapper">
+                            <div id="videoPlaceholder-long1" class="video-placeholder">
+                                <img id="videoThumbnail-long1" src="" alt="Long Video 1 Thumbnail">
+                                <div class="video-play-icon">▶ 2025 소방훈련 우수대원 선발대회</div>
+                            </div>
+                        </div>
                     </div>
+                    <div class="video-frame scroll-item" id="longVideoFrame2" data-video-id="c_rpnkaD7Ow" style="max-width: none;"> 
+                        <div class="video-wrapper">
+                            <div id="videoPlaceholder-long2" class="video-placeholder">
+                                <img id="videoThumbnail-long2" src="" alt="Long Video 2 Thumbnail">
+                                <div class="video-play-icon">▶ 단편 드라마</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="glitch-title" style="font-size:2.5rem; margin-top: 100px;" data-text="< SHORT_FORM >">< SHORT_FORM ></h3>
+                <div class="gallery-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+                    <div class="video-frame scroll-item" id="shortVideoFrame1" data-video-id="XUv8_zWMRwc" style="max-width: none;">
+                        <div class="video-wrapper">
+                            <div id="videoPlaceholder-short1" class="video-placeholder">
+                                <img id="videoThumbnail-short1" src="" alt="Shorts Video 1 Thumbnail">
+                                <div class="video-play-icon">▶ 열분해실험</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-frame scroll-item" id="shortVideoFrame2" data-video-id="8_P4IZ7YeXU" style="max-width: none;">
+                        <div class="video-wrapper">
+                            <div id="videoPlaceholder-short2" class="video-placeholder">
+                                <img id="videoThumbnail-short2" src="" alt="Shorts Video 2 Thumbnail">
+                                <div class="video-play-icon">▶ 배연실험</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
+    
+    <div id="chatModal" class="chat-modal">
+        <div class="chat-box">
+            <div class="chat-header">
+                [ SECURE CONNECTION ] TALKING TO: <span id="characterName"></span>
+                <span class="chat-close" onclick="closeChatModal()">&times;</span>
+            </div>
+            <div id="chatMessages" class="chat-messages">
+                </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="> MESSAGE_INPUT_REQUIRED..." onkeydown="handleChatEnter(event)">
+                <button onclick="sendUserMessage()">SEND</button>
+            </div>
+        </div>
+    </div>
 
     <footer>
-        <p>© 2025 SYNTHETIC HORIZON. <span>SYSTEM.READY</span></p>
+        <p>© 2025 SH's Portfolio. <span>shyeon0812@gmail.com</span></p>
     </footer>
 
     <script>
-        // --- 1. Custom Reticle Cursor Follow ---
+        // --- 0. Global Navigation (SPA) Logic ---
+        const navLinks = document.querySelectorAll('.nav-links a');
+        const spaPages = document.querySelectorAll('.spa-page');
+
+        function showPage(pageId, event) {
+            if (event) event.preventDefault();
+            
+            // 모든 SPA content 섹션 숨기기
+            spaPages.forEach(page => {
+                page.style.display = 'none';
+                page.classList.remove('active');
+            });
+            
+            // 모든 내비게이션 링크의 active 클래스 제거
+            navLinks.forEach(link => link.classList.remove('active'));
+
+            // 타겟 페이지 표시
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.style.display = 'flex'; // Flex로 설정해야 내부 콘텐츠 정렬이 유지됨
+                targetPage.classList.add('active');
+                window.scrollTo(0, document.getElementById('hero').offsetHeight); // Hero 섹션 아래로 스크롤
+            }
+
+            // 내비게이션 링크 Active 상태 설정
+            if (event) {
+                const navLink = event.target.closest('a');
+                if (navLink) navLink.classList.add('active');
+            } else {
+                // 초기 로드 시 'Self Intro' 링크 활성화
+                document.querySelector('.nav-links a[href="#intro"]').classList.add('active');
+            }
+        }
+        
+        // --- Works Tab Switcher ---
+        function showWorksTab(tabId, button) {
+            document.querySelectorAll('.works-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+            
+            document.querySelectorAll('.works-tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+        }
+
+        // --- 1. Custom Cursor Logic ---
         const reticle = document.querySelector('.cursor-reticle');
         window.addEventListener('mousemove', (e) => {
             reticle.style.left = `${e.clientX}px`;
             reticle.style.top = `${e.clientY}px`;
         });
 
-
-        // --- 2. 3D Wireframe Sphere Background Animation (Canvas API) ---
+        // --- 2. 3D Wireframe Background (Green Theme) ---
         const canvas = document.getElementById('wireframe-canvas');
         const ctx = canvas.getContext('2d');
         
         let width, height;
         let sphereRotation = 0;
-        const numPoints = 400; // 점의 개수
-        const sphereRadius = 400; // 구의 반지름
+        const numPoints = 350; // 점 개수
+        const sphereRadius = 450; // 구 반지름
 
-        // 3D 점 생성
         const points = [];
+        // 점 초기화
         for (let i = 0; i < numPoints; i++) {
-            const theta = Math.random() * Math.PI * 2; // 방위각
-            const phi = Math.acos(2 * Math.random() - 1); // 고도각
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(2 * Math.random() - 1);
             points.push({
                 x: sphereRadius * Math.sin(phi) * Math.cos(theta),
                 y: sphereRadius * Math.sin(phi) * Math.sin(theta),
@@ -845,31 +695,31 @@
         function draw() {
             ctx.clearRect(0, 0, width, height);
             
-            // 중앙으로 원점 이동
             const cx = width / 2;
             const cy = height / 2;
 
-            sphereRotation += 0.003; // 회전 속도
+            sphereRotation += 0.002; // 천천히 회전
 
             points.forEach(p => {
-                // Y축 중심 회전 (간단한 3D 회전 행렬)
+                // 회전 계산
                 let x = p.x * Math.cos(sphereRotation) - p.z * Math.sin(sphereRotation);
                 let z = p.x * Math.sin(sphereRotation) + p.z * Math.cos(sphereRotation);
                 let y = p.y;
 
-                // 원근 투영 (Perspective Projection)
-                let scale = 1000 / (1000 + z); // 거리에 따른 크기 조절
+                // 원근감 처리
+                let scale = 1200 / (1200 + z);
                 let px = cx + x * scale;
                 let py = cy + y * scale;
-                let pSize = (2 * scale);
+                let pSize = 1.5 * scale;
 
-                // 점 그리기
-                ctx.fillStyle = '#00ffff';
+                // [THEME COLOR APPLY]
+                // 점 색상: 매트릭스 그린
+                ctx.fillStyle = '#00ff41'; 
                 ctx.beginPath();
                 ctx.arc(px, py, pSize, 0, Math.PI * 2);
                 ctx.fill();
 
-                // 가까운 점들끼리 선 연결 (와이어프레임 효과)
+                // 선 연결
                 points.forEach(p2 => {
                      let x2 = p2.x * Math.cos(sphereRotation) - p2.z * Math.sin(sphereRotation);
                      let z2 = p2.x * Math.sin(sphereRotation) + p2.z * Math.cos(sphereRotation);
@@ -877,13 +727,14 @@
                      
                      let distance = Math.sqrt(Math.pow(x-x2, 2) + Math.pow(y-y2, 2) + Math.pow(z-z2, 2));
 
-                     if(distance < 100) { // 일정 거리 이내만 연결
-                         let scale2 = 1000 / (1000 + z2);
+                     if(distance < 120) {
+                         let scale2 = 1200 / (1200 + z2);
                          let px2 = cx + x2 * scale2;
                          let py2 = cy + y2 * scale2;
                          
-                         ctx.strokeStyle = `rgba(0, 255, 255, ${1 - distance/100})`;
-                         ctx.lineWidth = 0.5;
+                         // 선 색상: 투명도 있는 녹색
+                         ctx.strokeStyle = `rgba(0, 255, 65, ${0.4 - distance/120 * 0.4})`;
+                         ctx.lineWidth = 0.6;
                          ctx.beginPath();
                          ctx.moveTo(px, py);
                          ctx.lineTo(px2, py2);
@@ -896,20 +747,183 @@
         }
         draw();
 
-
-        // --- 3. Scroll Reveal Animation (Intersection Observer) ---
-        const observerOptions = { threshold: 0.15, rootMargin: "0px 0px -50px 0px" };
-        const observer = new IntersectionObserver((entries, observer) => {
+        // --- 3. Scroll Reveal (Intersection Observer) ---
+        const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if(entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    observer.unobserve(entry.target); // 한번 나타나면 관찰 중지
                 }
             });
-        }, observerOptions);
+        }, { threshold: 0.15 });
 
         document.querySelectorAll('.glitch-title, .scroll-item').forEach(el => {
             observer.observe(el);
+        });
+        
+        // --- 4. Chat Modal Logic ---
+        const chatModal = document.getElementById('chatModal');
+        const characterNameElement = document.getElementById('characterName');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        
+        let currentCharacter = '';
+
+        function openChatModal(name) {
+            currentCharacter = name;
+            characterNameElement.textContent = name.toUpperCase();
+            chatMessages.innerHTML = ''; // 이전 대화 내용 초기화
+            
+            // 초기 환영 메시지 설정
+            let welcomeMessage = '';
+            if (name === 'Boksil') {
+                welcomeMessage = '빨리 나와~ 이러다 늦겠어!!';
+            } else if (name === 'Black') {
+                welcomeMessage = '안녕~ 우리 또 보네?';
+            }
+            appendMessage(name, welcomeMessage, 'bot');
+            
+            chatModal.style.display = 'flex';
+            chatInput.focus();
+        }
+
+        function closeChatModal() {
+            chatModal.style.display = 'none';
+            chatInput.value = '';
+            currentCharacter = '';
+        }
+
+        function appendMessage(sender, text, type) {
+            const msgElement = document.createElement('div');
+            msgElement.classList.add('message', type);
+            msgElement.innerHTML = `<strong>[ ${sender.toUpperCase()} ]</strong>: ${text}`;
+            chatMessages.appendChild(msgElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendUserMessage() {
+            const text = chatInput.value.trim();
+            if (text === '') return;
+
+            appendMessage('USER', text, 'user');
+            chatInput.value = '';
+
+            setTimeout(() => {
+                const botResponse = generateBotResponse(text, currentCharacter);
+                appendMessage(currentCharacter, botResponse, 'bot');
+            }, 800);
+        }
+
+        function handleChatEnter(event) {
+            if (event.key === 'Enter') {
+                sendUserMessage();
+            }
+        }
+
+        // --- 가상 AI 응답 로직 (키워드 매칭) ---
+        function generateBotResponse(userInput, character) {
+            const inputLower = userInput.toLowerCase();
+
+            if (character === 'Boksil') {
+                if (inputLower.includes('배고파') || inputLower.includes('밥')) {
+                    return '너 아침 안 먹었지? 샌드위치 사왔어 먹으면서 가';
+                } else if (inputLower.includes('공부') || inputLower.includes('시험')) {
+                    return '당연히 이번 시험도 잘 봤지~ 내가 누군데!';
+                } else if (inputLower.includes('수업') || inputLower.includes('시간표')) {
+                    return '너 4교시 체육이지? 우리반도 체육인데. 그때 만나면 되겠다';
+                } else if (inputLower.includes('안녕') || inputLower.includes('하이')) {
+                    return '가자. 잘 잤어?';
+                } else {
+                    return '뭐라고?? 다시 말해줘';
+                }
+            } else if (character === 'Black') {
+                if (inputLower.includes('기억')) {
+                    return '당연하지~~ 우리 저번 콘서트 때 봤잖아';
+                } else if (inputLower.includes('애교') || inputLower.includes('3종')) {
+                    return '😉🤭🥰';
+                } else if (inputLower.includes('무대') || inputLower.includes('실수')) {
+                    return '어제 무대 봤어? 실수해서 너무 속상했어ㅠ..';
+                } else {
+                    return '비밀이야🤫';
+                }
+            }
+            return 'SYSTEM ERROR. REBOOTING.';
+        }
+
+        // --- 5. 이미지 클릭 이벤트 연결 ---
+        // Boksil 카드 클릭 이벤트 연결
+        document.querySelector('.gallery-grid > div:nth-child(1) .card-img-frame').addEventListener('click', () => {
+             openChatModal('Boksil');
+        });
+
+        // Black 카드 클릭 이벤트 연결
+        document.querySelector('.gallery-grid > div:nth-child(2) .card-img-frame').addEventListener('click', () => {
+             openChatModal('Black');
+        });
+        
+        // --- 6. 통합 영상 재생 및 썸네일 로딩 로직 ---
+        
+        // YouTube ID를 이용하여 썸네일 URL을 생성하는 함수
+        function getYouTubeThumbnail(videoId) {
+            if (!videoId || videoId.length < 5) {
+                return 'https://via.placeholder.com/1000x562/000b00/00ff41?text=INSERT_YOUTUBE_ID';
+            }
+            return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+        
+        function initializeAllVideos() {
+             // data-video-id 속성을 가진 모든 비디오 프레임 요소를 찾습니다.
+             const videoElements = document.querySelectorAll('.video-frame[data-video-id]');
+             
+             videoElements.forEach((videoFrame, index) => {
+                 const videoId = videoFrame.getAttribute('data-video-id');
+                 const videoWrapper = videoFrame.querySelector('.video-wrapper');
+                 const videoPlaceholder = videoFrame.querySelector('.video-placeholder');
+                 const videoThumbnail = videoFrame.querySelector('img[id^="videoThumbnail"]');
+                 
+                 if (videoId && videoId.length > 5 && videoThumbnail) {
+                     // 썸네일 로드
+                     videoThumbnail.src = getYouTubeThumbnail(videoId);
+                     
+                     // 클릭 이벤트 리스너 설정
+                     if (videoPlaceholder && !videoPlaceholder.dataset.listenerAttached) {
+                         const clickHandler = () => {
+                             // 1. 플레이스홀더 제거
+                             videoPlaceholder.style.display = 'none';
+
+                             // 2. iframe 생성 (자동 재생 & 관련 영상 숨김)
+                             const embedLink = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                             
+                             if (!videoWrapper.querySelector('iframe')) {
+                                 const iframe = document.createElement('iframe');
+                                 iframe.setAttribute('src', embedLink);
+                                 iframe.setAttribute('frameborder', '0');
+                                 iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen');
+                                 iframe.setAttribute('allowfullscreen', 'true');
+                                 
+                                 videoWrapper.innerHTML = '';
+                                 videoWrapper.appendChild(iframe);
+                             }
+                         };
+                         videoPlaceholder.addEventListener('click', clickHandler);
+                         videoPlaceholder.dataset.listenerAttached = 'true';
+                     }
+                 } else if (videoWrapper && videoId !== 'YOUR_LONG_VIDEO_ID_1' && videoId !== 'YOUR_LONG_VIDEO_ID_2' && videoId !== 'YOUR_SHORT_VIDEO_ID_1' && videoId !== 'YOUR_SHORT_VIDEO_ID_2') {
+                      // ID가 없거나 유효하지 않은 경우 (플레이스홀더 이미지가 아닌 텍스트 표시)
+                      videoWrapper.innerHTML = `<div style="position:absolute; width:100%; height:100%; background:#050505; display:flex; justify-content:center; align-items:center; flex-direction:column;">
+                            <span style="color:var(--neon-main); font-size:2rem;">▶</span>
+                            <span style="color:var(--text-secondary); margin-top:10px;">VIDEO ID NOT FOUND</span>
+                        </div>`;
+                 }
+             });
+         }
+         
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 모든 영상에 썸네일 및 재생 기능 초기화
+            initializeAllVideos();
+            
+            // 초기 페이지 로드: Self Intro 페이지를 보여주고 메뉴를 활성화
+            showPage('introPage'); 
         });
 
     </script>
