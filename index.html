@@ -1,0 +1,917 @@
+<<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNTHETIC HORIZON | AI Artwork Exhibition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --bg-color: #020014;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --neon-magenta: #ff0055;
+            --neon-cyan: #00ffff;
+            --hologram-bg: rgba(2, 0, 20, 0.7);
+            --hologram-border: rgba(0, 255, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* 기본 커서 숨김 */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        h1, h2, h3 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        a { text-decoration: none; }
+
+        /* --- Custom Reticle Cursor --- */
+        .cursor-reticle {
+            position: fixed;
+            top: 0; left: 0;
+            width: 30px; height: 30px;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            transition: width 0.2s, height 0.2s, border-color 0.2s;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        .cursor-reticle::after { /* 조준점 */
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 4px; height: 4px;
+            background: var(--neon-magenta);
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+        body:hover .cursor-reticle {
+            width: 50px; height: 50px;
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 15px var(--neon-magenta);
+        }
+
+        /* --- Background Canvas --- */
+        #wireframe-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 0;
+        }
+
+        /* --- Glitch Title Effect --- */
+        .glitch-title {
+            font-size: 3.5rem;
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+            color: var(--text-primary);
+            opacity: 0; /* 스크롤 전 숨김 */
+        }
+        .glitch-title.visible {
+             animation: glitch-appear 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+        .glitch-title::before, .glitch-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.8;
+        }
+        .glitch-title::before {
+            color: var(--neon-cyan);
+            z-index: -1;
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch-title::after {
+            color: var(--neon-magenta);
+            z-index: -2;
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        /* --- Hero Section --- */
+        #hero {
+            text-align: left;
+            align-items: flex-start;
+            padding-top: 20vh;
+        }
+        .hero-title {
+            font-size: 6rem;
+            line-height: 1;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px var(--neon-magenta), -2px -2px 0px var(--neon-cyan);
+        }
+        .hero-subtitle {
+            font-size: 1.8rem;
+            color: var(--neon-cyan);
+            margin-bottom: 40px;
+            letter-spacing: 5px;
+        }
+
+        /* --- Hologram Gallery Cards (New Design) --- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .holo-card {
+            position: relative;
+            background: var(--hologram-bg);
+            border: 1px solid var(--hologram-border);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            opacity: 0; transform: translateY(30px); /* 스크롤 초기 상태 */
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .holo-card.visible {
+            opacity: 1; transform: translateY(0);
+        }
+
+        .card-img-frame {
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--hologram-border);
+        }
+        .card-img-frame img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(50%) contrast(120%);
+            transition: filter 0.3s;
+        }
+        /* Placeholder for images */
+        .card-img-placeholder {
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, #111, #222);
+            display: flex;
+            justify-content: center; alignItems: center;
+            color: #555; font-size: 1.5rem;
+        }
+
+        /* Hologram Scanline Hover Effect */
+        .holo-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to bottom, transparent, var(--neon-cyan), transparent);
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .holo-card:hover::after {
+            opacity: 0.5;
+            animation: scanline-pass 1.5s ease-in-out infinite;
+        }
+        .holo-card:hover .card-img-frame img {
+            filter: grayscale(0%) contrast(100%);
+        }
+        .holo-card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-info {
+            padding: 25px;
+            position: relative;
+            z-index: 3;
+        }
+        .card-info h3 { font-size: 1.6rem; color: var(--text-primary); margin-bottom: 8px; }
+        .card-info p { color: var(--neon-magenta); font-size: 1rem; }
+
+
+        /* --- Video Section --- */
+        .video-frame {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            border: 2px solid var(--neon-magenta);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
+            position: relative;
+            opacity: 0; transform: scale(0.95);
+            transition: all 0.8s ease;
+        }
+        .video-frame.visible {
+             opacity: 1; transform: scale(1);
+        }
+        .video-frame::before { /* Corner decoration */
+            content: ''; position: absolute; top: -10px; left: -10px;
+            width: 30px; height: 30px; border-top: 3px solid var(--neon-cyan); border-left: 3px solid var(--neon-cyan);
+        }
+        .video-frame::after { /* Corner decoration */
+            content: ''; position: absolute; bottom: -10px; right: -10px;
+            width: 30px; height: 30px; border-bottom: 3px solid var(--neon-cyan); border-right: 3px solid var(--neon-cyan);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            background: #000;
+        }
+        .video-wrapper iframe, .video-wrapper video {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 50px; text-align: center;
+            border-top: 1px solid var(--hologram-border); color: var(--text-secondary);
+        }
+        footer span { color: var(--neon-cyan); }
+
+        /* --- Animations Keyframes --- */
+        @keyframes glitch-appear {
+            0% { opacity: 0; transform: translateX(-50px); clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
+            100% { opacity: 1; transform: translateX(0); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+        }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -2px); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px); }
+            100% { clip-path: inset(50% 0 20% 0); transform: translate(-2px, 2px); }
+        }
+        @keyframes scanline-pass {
+            0% { top: -50%; opacity: 0; }
+            50% { opacity: 0.7; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 4rem; }
+            .glitch-title { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cursor-reticle"></div>
+
+    <canvas id="wireframe-canvas"></canvas>
+
+    <main class="container">
+        <section id="hero">
+            <h1 class="hero-title" data-text="SYNTHETIC HORIZON">SYNTHETIC<br>HORIZON</h1>
+            <p class="hero-subtitle">AI GENERATED ART EXHITION</p>
+            <p style="color: var(--text-secondary); max-width: 500px;">
+                탐험하라. 인공지능이 그려낸 새로운 현실의 경계를. <br>
+                상상력과 데이터가 충돌하는 지점.
+            </p>
+        </section>
+
+        <section id="gallery">
+            <h2 class="glitch-title" data-text="> CYBERNETIC ENTITIES">> AI </h2>
+            
+            <div class="gallery-grid">
+                <div class="holo-card scroll-item">
+                    <div class="card-img-frame">
+                        <img src="캐릭터 1.jpg" alt="사이버 닌자 작품">
+                    </div>
+                    <div class="card-info">
+                        <h3>PROJECT: NEON_SAMURAI</h3>
+                        <p>Generated by Midjourney V6</p>
+                    </div>
+                </div>
+                <div class="holo-card scroll-item" style="transition-delay: 0.2s;">
+                    <div class="card-img-frame">
+                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 02 ]</div>
+                    </div>
+                    <div class="card-info">
+                        <h3>PROJECT: DATA_ANGEL</h3>
+                        <p>Stable Diffusion XL</p>
+                    </div>
+                </div>
+                <div class="holo-card scroll-item" style="transition-delay: 0.4s;">
+                    <div class="card-img-frame">
+                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 03 ]</div>
+                    </div>
+                    <div class="card-info">
+                        <h3>PROJECT: GLITCH_CORE</h3>
+                        <p>DALL-E 3 + Photoshop</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="video">
+            <h2 class="glitch-title" data-text="> VISUAL TRANSMISSION">> VISUAL TRANSMISSION</h2>
+            
+            <div class="video-frame scroll-item">
+                <div class="video-wrapper">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=test&controls=0&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 SYNTHETIC HORIZON. <span>SYSTEM.READY</span></p>
+    </footer>
+
+    <script>
+        // --- 1. Custom Reticle Cursor Follow ---
+        const reticle = document.querySelector('.cursor-reticle');
+        window.addEventListener('mousemove', (e) => {
+            reticle.style.left = `${e.clientX}px`;
+            reticle.style.top = `${e.clientY}px`;
+        });
+
+
+        // --- 2. 3D Wireframe Sphere Background Animation (Canvas API) ---
+        const canvas = document.getElementById('wireframe-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let sphereRotation = 0;
+        const numPoints = 400; // 점의 개수
+        const sphereRadius = 400; // 구의 반지름
+
+        // 3D 점 생성
+        const points = [];
+        for (let i = 0; i < numPoints; i++) {
+            const theta = Math.random() * Math.PI * 2; // 방위각
+            const phi = Math.acos(2 * Math.random() - 1); // 고도각
+            points.push({
+                x: sphereRadius * Math.sin(phi) * Math.cos(theta),
+                y: sphereRadius * Math.sin(phi) * Math.sin(theta),
+                z: sphereRadius * Math.cos(phi)
+            });
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // 중앙으로 원점 이동
+            const cx = width / 2;
+            const cy = height / 2;
+
+            sphereRotation += 0.003; // 회전 속도
+
+            points.forEach(p => {
+                // Y축 중심 회전 (간단한 3D 회전 행렬)
+                let x = p.x * Math.cos(sphereRotation) - p.z * Math.sin(sphereRotation);
+                let z = p.x * Math.sin(sphereRotation) + p.z * Math.cos(sphereRotation);
+                let y = p.y;
+
+                // 원근 투영 (Perspective Projection)
+                let scale = 1000 / (1000 + z); // 거리에 따른 크기 조절
+                let px = cx + x * scale;
+                let py = cy + y * scale;
+                let pSize = (2 * scale);
+
+                // 점 그리기
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 가까운 점들끼리 선 연결 (와이어프레임 효과)
+                points.forEach(p2 => {
+                     let x2 = p2.x * Math.cos(sphereRotation) - p2.z * Math.sin(sphereRotation);
+                     let z2 = p2.x * Math.sin(sphereRotation) + p2.z * Math.cos(sphereRotation);
+                     let y2 = p2.y;
+                     
+                     let distance = Math.sqrt(Math.pow(x-x2, 2) + Math.pow(y-y2, 2) + Math.pow(z-z2, 2));
+
+                     if(distance < 100) { // 일정 거리 이내만 연결
+                         let scale2 = 1000 / (1000 + z2);
+                         let px2 = cx + x2 * scale2;
+                         let py2 = cy + y2 * scale2;
+                         
+                         ctx.strokeStyle = `rgba(0, 255, 255, ${1 - distance/100})`;
+                         ctx.lineWidth = 0.5;
+                         ctx.beginPath();
+                         ctx.moveTo(px, py);
+                         ctx.lineTo(px2, py2);
+                         ctx.stroke();
+                     }
+                });
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+
+        // --- 3. Scroll Reveal Animation (Intersection Observer) ---
+        const observerOptions = { threshold: 0.15, rootMargin: "0px 0px -50px 0px" };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target); // 한번 나타나면 관찰 중지
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glitch-title, .scroll-item').forEach(el => {
+            observer.observe(el);
+        });
+
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNTHETIC HORIZON | AI Artwork Exhibition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --bg-color: #020014;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0c0;
+            --neon-magenta: #ff0055;
+            --neon-cyan: #00ffff;
+            --hologram-bg: rgba(2, 0, 20, 0.7);
+            --hologram-border: rgba(0, 255, 255, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* 기본 커서 숨김 */
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+            line-height: 1.5;
+        }
+
+        h1, h2, h3 {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        a { text-decoration: none; }
+
+        /* --- Custom Reticle Cursor --- */
+        .cursor-reticle {
+            position: fixed;
+            top: 0; left: 0;
+            width: 30px; height: 30px;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            transition: width 0.2s, height 0.2s, border-color 0.2s;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        .cursor-reticle::after { /* 조준점 */
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 4px; height: 4px;
+            background: var(--neon-magenta);
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+        body:hover .cursor-reticle {
+            width: 50px; height: 50px;
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 15px var(--neon-magenta);
+        }
+
+        /* --- Background Canvas --- */
+        #wireframe-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* --- Layout --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 100px 0;
+        }
+
+        /* --- Glitch Title Effect --- */
+        .glitch-title {
+            font-size: 3.5rem;
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+            color: var(--text-primary);
+            opacity: 0; /* 스크롤 전 숨김 */
+        }
+        .glitch-title.visible {
+             animation: glitch-appear 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+        .glitch-title::before, .glitch-title::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.8;
+        }
+        .glitch-title::before {
+            color: var(--neon-cyan);
+            z-index: -1;
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch-title::after {
+            color: var(--neon-magenta);
+            z-index: -2;
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        /* --- Hero Section --- */
+        #hero {
+            text-align: left;
+            align-items: flex-start;
+            padding-top: 20vh;
+        }
+        .hero-title {
+            font-size: 6rem;
+            line-height: 1;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px var(--neon-magenta), -2px -2px 0px var(--neon-cyan);
+        }
+        .hero-subtitle {
+            font-size: 1.8rem;
+            color: var(--neon-cyan);
+            margin-bottom: 40px;
+            letter-spacing: 5px;
+        }
+
+        /* --- Hologram Gallery Cards (New Design) --- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .holo-card {
+            position: relative;
+            background: var(--hologram-bg);
+            border: 1px solid var(--hologram-border);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            opacity: 0; transform: translateY(30px); /* 스크롤 초기 상태 */
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .holo-card.visible {
+            opacity: 1; transform: translateY(0);
+        }
+
+        .card-img-frame {
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--hologram-border);
+        }
+        .card-img-frame img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: grayscale(50%) contrast(120%);
+            transition: filter 0.3s;
+        }
+        /* Placeholder for images */
+        .card-img-placeholder {
+            width: 100%; height: 100%;
+            background: linear-gradient(45deg, #111, #222);
+            display: flex;
+            justify-content: center; alignItems: center;
+            color: #555; font-size: 1.5rem;
+        }
+
+        /* Hologram Scanline Hover Effect */
+        .holo-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to bottom, transparent, var(--neon-cyan), transparent);
+            opacity: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .holo-card:hover::after {
+            opacity: 0.5;
+            animation: scanline-pass 1.5s ease-in-out infinite;
+        }
+        .holo-card:hover .card-img-frame img {
+            filter: grayscale(0%) contrast(100%);
+        }
+        .holo-card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+
+        .card-info {
+            padding: 25px;
+            position: relative;
+            z-index: 3;
+        }
+        .card-info h3 { font-size: 1.6rem; color: var(--text-primary); margin-bottom: 8px; }
+        .card-info p { color: var(--neon-magenta); font-size: 1rem; }
+
+
+        /* --- Video Section --- */
+        .video-frame {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            border: 2px solid var(--neon-magenta);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.3);
+            position: relative;
+            opacity: 0; transform: scale(0.95);
+            transition: all 0.8s ease;
+        }
+        .video-frame.visible {
+             opacity: 1; transform: scale(1);
+        }
+        .video-frame::before { /* Corner decoration */
+            content: ''; position: absolute; top: -10px; left: -10px;
+            width: 30px; height: 30px; border-top: 3px solid var(--neon-cyan); border-left: 3px solid var(--neon-cyan);
+        }
+        .video-frame::after { /* Corner decoration */
+            content: ''; position: absolute; bottom: -10px; right: -10px;
+            width: 30px; height: 30px; border-bottom: 3px solid var(--neon-cyan); border-right: 3px solid var(--neon-cyan);
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            background: #000;
+        }
+        .video-wrapper iframe, .video-wrapper video {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+
+        /* --- Footer --- */
+        footer {
+            padding: 50px; text-align: center;
+            border-top: 1px solid var(--hologram-border); color: var(--text-secondary);
+        }
+        footer span { color: var(--neon-cyan); }
+
+        /* --- Animations Keyframes --- */
+        @keyframes glitch-appear {
+            0% { opacity: 0; transform: translateX(-50px); clip-path: polygon(0 0, 100% 0, 100% 10%, 0 10%); }
+            100% { opacity: 1; transform: translateX(0); clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+        }
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
+            100% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -2px); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px); }
+            100% { clip-path: inset(50% 0 20% 0); transform: translate(-2px, 2px); }
+        }
+        @keyframes scanline-pass {
+            0% { top: -50%; opacity: 0; }
+            50% { opacity: 0.7; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title { font-size: 4rem; }
+            .glitch-title { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cursor-reticle"></div>
+
+    <canvas id="wireframe-canvas"></canvas>
+
+    <main class="container">
+        <section id="hero">
+            <h1 class="hero-title" data-text="SYNTHETIC HORIZON">SYNTHETIC<br>HORIZON</h1>
+            <p class="hero-subtitle">AI GENERATED ART EXHITION</p>
+            <p style="color: var(--text-secondary); max-width: 500px;">
+                탐험하라. 인공지능이 그려낸 새로운 현실의 경계를. <br>
+                상상력과 데이터가 충돌하는 지점.
+            </p>
+        </section>
+
+        <section id="gallery">
+            <h2 class="glitch-title" data-text="> CYBERNETIC ENTITIES">> CYBERNETIC ENTITIES</h2>
+            
+            <div class="gallery-grid">
+                <div class="holo-card scroll-item">
+                    <div class="card-img-frame">
+                        <div class="card-img-placeholder">[ IMG ERROR :: UNIT 01 ]</div>
+                    </div>
+                    <div class="card-info">
+                        <h3>PROJECT: NEON_SAMURAI</h3>
+                        <p>Generated by Midjourney V6</p>
+                    </div>
+                </div>
+                <div class="holo-card scroll-item" style="transition-delay: 0.2s;">
+                    <div class="card-img-frame">
+                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 02 ]</div>
+                    </div>
+                    <div class="card-info">
+                        <h3>PROJECT: DATA_ANGEL</h3>
+                        <p>Stable Diffusion XL</p>
+                    </div>
+                </div>
+                <div class="holo-card scroll-item" style="transition-delay: 0.4s;">
+                    <div class="card-img-frame">
+                         <div class="card-img-placeholder">[ IMG ERROR :: UNIT 03 ]</div>
+                    </div>
+                    <div class="card-info">
+                        <h3>PROJECT: GLITCH_CORE</h3>
+                        <p>DALL-E 3 + Photoshop</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="video">
+            <h2 class="glitch-title" data-text="> VISUAL TRANSMISSION">> VISUAL TRANSMISSION</h2>
+            
+            <div class="video-frame scroll-item">
+                <div class="video-wrapper">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ?si=test&controls=0&mute=1" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                    </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2025 SYNTHETIC HORIZON. <span>SYSTEM.READY</span></p>
+    </footer>
+
+    <script>
+        // --- 1. Custom Reticle Cursor Follow ---
+        const reticle = document.querySelector('.cursor-reticle');
+        window.addEventListener('mousemove', (e) => {
+            reticle.style.left = `${e.clientX}px`;
+            reticle.style.top = `${e.clientY}px`;
+        });
+
+
+        // --- 2. 3D Wireframe Sphere Background Animation (Canvas API) ---
+        const canvas = document.getElementById('wireframe-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let sphereRotation = 0;
+        const numPoints = 400; // 점의 개수
+        const sphereRadius = 400; // 구의 반지름
+
+        // 3D 점 생성
+        const points = [];
+        for (let i = 0; i < numPoints; i++) {
+            const theta = Math.random() * Math.PI * 2; // 방위각
+            const phi = Math.acos(2 * Math.random() - 1); // 고도각
+            points.push({
+                x: sphereRadius * Math.sin(phi) * Math.cos(theta),
+                y: sphereRadius * Math.sin(phi) * Math.sin(theta),
+                z: sphereRadius * Math.cos(phi)
+            });
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // 중앙으로 원점 이동
+            const cx = width / 2;
+            const cy = height / 2;
+
+            sphereRotation += 0.003; // 회전 속도
+
+            points.forEach(p => {
+                // Y축 중심 회전 (간단한 3D 회전 행렬)
+                let x = p.x * Math.cos(sphereRotation) - p.z * Math.sin(sphereRotation);
+                let z = p.x * Math.sin(sphereRotation) + p.z * Math.cos(sphereRotation);
+                let y = p.y;
+
+                // 원근 투영 (Perspective Projection)
+                let scale = 1000 / (1000 + z); // 거리에 따른 크기 조절
+                let px = cx + x * scale;
+                let py = cy + y * scale;
+                let pSize = (2 * scale);
+
+                // 점 그리기
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(px, py, pSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 가까운 점들끼리 선 연결 (와이어프레임 효과)
+                points.forEach(p2 => {
+                     let x2 = p2.x * Math.cos(sphereRotation) - p2.z * Math.sin(sphereRotation);
+                     let z2 = p2.x * Math.sin(sphereRotation) + p2.z * Math.cos(sphereRotation);
+                     let y2 = p2.y;
+                     
+                     let distance = Math.sqrt(Math.pow(x-x2, 2) + Math.pow(y-y2, 2) + Math.pow(z-z2, 2));
+
+                     if(distance < 100) { // 일정 거리 이내만 연결
+                         let scale2 = 1000 / (1000 + z2);
+                         let px2 = cx + x2 * scale2;
+                         let py2 = cy + y2 * scale2;
+                         
+                         ctx.strokeStyle = `rgba(0, 255, 255, ${1 - distance/100})`;
+                         ctx.lineWidth = 0.5;
+                         ctx.beginPath();
+                         ctx.moveTo(px, py);
+                         ctx.lineTo(px2, py2);
+                         ctx.stroke();
+                     }
+                });
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+
+        // --- 3. Scroll Reveal Animation (Intersection Observer) ---
+        const observerOptions = { threshold: 0.15, rootMargin: "0px 0px -50px 0px" };
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if(entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target); // 한번 나타나면 관찰 중지
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glitch-title, .scroll-item').forEach(el => {
+            observer.observe(el);
+        });
+
+    </script>
+</body>
+</html>
